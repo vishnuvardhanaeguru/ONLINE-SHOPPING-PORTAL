@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: cloudcart
+  labels:
+    app: cloudcart-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cloudcart-backend
+  template:
+    metadata:
+      labels:
+        app: cloudcart-backend
+    spec:
+      containers:
+        - name: backend
+          image: <DOCKERHUB_USERNAME>/cloudcart-backend:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: cloudcart-config
+            - secretRef:
+                name: cloudcart-secrets
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "384Mi"
+            limits:
+              cpu: "500m"
+              memory: "768Mi"
+          readinessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/actuator/health
+              port: 8080
+            initialDelaySeconds: 45
+            periodSeconds: 15
